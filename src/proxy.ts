@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 const PUBLIC_ROUTES = ["/login"];
 const AUTH_ROUTES = ["/login"]; // Routes only for unauthenticated users
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const hasSession = request.cookies.get("has_session")?.value === "true";
 

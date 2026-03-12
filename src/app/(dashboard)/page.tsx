@@ -10,68 +10,15 @@ import {
     Terminal,
     Activity,
 } from "lucide-react";
+import { useProjects } from "@/hooks/use-projects";
+import { useBlogPosts } from "@/hooks/use-blog";
+import { useContacts } from "@/hooks/use-contact";
+import { useAnalyticsStats } from "@/hooks/use-analytics";
+import { useMemo } from "react";
 
 const accent = "#00ff88";
 const dim = "#555577";
 const subtle = "rgba(80,80,120,0.35)";
-
-const stats = [
-    {
-        label: "Page Views",
-        value: "12,482",
-        change: "+18.2%",
-        icon: Eye,
-        color: "#00ff88",
-    },
-    {
-        label: "Active Projects",
-        value: "14",
-        change: "+2 this mo",
-        icon: FolderKanban,
-        color: "#00ccff",
-    },
-    {
-        label: "Blog Posts",
-        value: "8",
-        change: "6 published",
-        icon: FileText,
-        color: "#aa88ff",
-    },
-    {
-        label: "Unread Messages",
-        value: "3",
-        change: "New today",
-        icon: Mail,
-        color: "#ffaa00",
-    },
-];
-
-const activity = [
-    {
-        time: "12:31",
-        event: "New contact message",
-        source: "visitor@example.com",
-        type: "msg",
-    },
-    {
-        time: "10:22",
-        event: "Blog post viewed",
-        source: "/blog/my-latest-project",
-        type: "view",
-    },
-    {
-        time: "08:14",
-        event: "Portfolio visit",
-        source: "linkedin.com",
-        type: "visit",
-    },
-    {
-        time: "Yesterday",
-        event: "New contact message",
-        source: "recruiter@company.com",
-        type: "msg",
-    },
-];
 
 const typeColor: Record<string, string> = {
     msg: "#ffaa00",
@@ -107,6 +54,97 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
+    // 1. Fetch real data
+    const { data: projects } = useProjects();
+    const { data: blogPosts } = useBlogPosts();
+    const { data: contacts } = useContacts();
+    const { data: analytics } = useAnalyticsStats();
+    // 2. Compute dynamic stats
+    const dynamicStats = useMemo(() => {
+        const activeProjects =
+            projects?.filter((p) => !p.published).length || 0;
+        const publishedBlogs =
+            blogPosts?.filter((b) => b.published).length || 0;
+        const unreadMsgs = contacts?.filter((c) => !c.read).length || 0;
+        const totalViews = analytics?.totalViews || 0;
+        return [
+            {
+                label: "Page Views",
+                value: totalViews.toLocaleString(),
+                change: "Lifetime",
+                icon: Eye,
+                color: "#00ff88",
+            },
+            {
+                label: "Active Drafts",
+                value: activeProjects.toString(),
+                change: `${projects?.filter((p) => p.published).length || 0} deployed`,
+                icon: FolderKanban,
+                color: "#00ccff",
+            },
+            {
+                label: "Blog Posts",
+                value: (blogPosts?.length || 0).toString(),
+                change: `${publishedBlogs} published`,
+                icon: FileText,
+                color: "#aa88ff",
+            },
+            {
+                label: "Unread Messages",
+                value: unreadMsgs.toString(),
+                change: contacts?.length ? "Needs review" : "Inbox zero",
+                icon: Mail,
+                color: "#ffaa00",
+            },
+        ];
+    }, [projects, blogPosts, contacts, analytics]);
+
+    const liveActivity = useMemo(() => {
+        const events: {
+            time: string;
+            event: string;
+            source: string;
+            type: "msg" | "view" | "visit";
+        }[] = [];
+
+        // Add recent messages
+        contacts?.slice(0, 10).forEach((msg) => {
+            events.push({
+                time: msg.createdAt,
+                event: msg.subject.slice(0, 30) + "...",
+                source: msg.email,
+                type: "msg",
+            });
+        });
+
+        // Add recent analytics
+        analytics?.recentViews.forEach((view) => {
+            events.push({
+                time: view.createdAt,
+                event: view.path,
+                source:
+                    view.referrer || view.userAgent?.split(" ")[0] || "Unknown",
+                type: "view",
+            });
+        });
+
+        // Sort by newest first and grab top 10
+        return events
+            .sort(
+                (a, b) =>
+                    new Date(b.time).getTime() - new Date(a.time).getTime(),
+            )
+            .slice(0, 10)
+            .map((e) => ({
+                ...e,
+                // Format the time nicely
+                time: new Date(e.time).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            }));
+    }, [contacts, analytics]);
+
     return (
         <div
             className="space-y-8 min-h-screen p-6"
@@ -156,7 +194,7 @@ export default function DashboardPage() {
 
             {/* ── STAT CARDS ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat) => (
+                {dynamicStats.map((stat) => (
                     <div
                         key={stat.label}
                         className="group relative rounded-sm border overflow-hidden transition-all duration-200"
@@ -276,7 +314,7 @@ export default function DashboardPage() {
 
                     {/* log rows */}
                     <div className="divide-y" style={{ borderColor: subtle }}>
-                        {activity.map((item, i) => (
+                        {liveActivity.map((item, i) => (
                             <div
                                 key={i}
                                 className="flex items-center gap-4 px-5 py-3 text-[11px] font-mono transition-colors"
@@ -340,8 +378,8 @@ export default function DashboardPage() {
                             color: "rgba(80,80,120,0.5)",
                         }}
                     >
-                        showing last {activity.length} events — auto-refreshes
-                        every 30s
+                        showing last {liveActivity.length} events —
+                        auto-refreshes every 30s
                     </div>
                 </div>
 
