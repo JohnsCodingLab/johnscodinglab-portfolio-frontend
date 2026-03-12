@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3008/api";
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://portfolio-api-pm4w.onrender.com/api";
 
 const api = axios.create({
     baseURL: API_BASE_URL,
