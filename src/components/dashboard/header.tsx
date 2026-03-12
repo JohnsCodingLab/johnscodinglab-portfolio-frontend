@@ -134,12 +134,11 @@ function NotificationBell() {
             {/* dropdown */}
             {open && (
                 <div
-                    className="absolute right-0 top-full mt-2 w-80 rounded-sm border overflow-hidden z-50"
+                    className="absolute right-0 top-full mt-2 w-80 rounded-sm border overflow-hidden z-50 bg-popover"
                     style={{
-                        background: "#0c0c14",
                         borderColor: "rgba(0,200,255,0.2)",
                         boxShadow:
-                            "0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,200,255,0.04)",
+                            "0 0 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,200,255,0.04)",
                     }}
                 >
                     {/* header */}
@@ -311,9 +310,8 @@ export function Header() {
 
     return (
         <header
-            className="relative flex items-center h-14 px-4 top-0 z-50 border-b"
+            className="relative flex items-center h-14 px-4 top-0 z-50 border-b bg-background/90"
             style={{
-                background: "rgba(8,8,16,0.9)",
                 borderColor: subtle,
                 backdropFilter: "blur(12px)",
             }}

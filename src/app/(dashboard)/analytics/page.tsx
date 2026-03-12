@@ -62,10 +62,7 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div
-            className="space-y-6 min-h-screen p-6"
-            style={{ background: "#080810" }}
-        >
+        <div className="space-y-6 min-h-screen p-6 bg-background">
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="space-y-1">
@@ -114,10 +111,9 @@ export default function AnalyticsPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="relative p-5 rounded-sm border overflow-hidden"
+                        className="relative p-5 rounded-sm border overflow-hidden bg-card"
                         style={{
                             borderColor: subtle,
-                            background: "rgba(255,255,255,0.01)",
                         }}
                     >
                         {/* Corner accent */}
@@ -162,10 +158,9 @@ export default function AnalyticsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="lg:col-span-2 rounded-sm border p-5"
+                    className="lg:col-span-2 rounded-sm border p-5 bg-card"
                     style={{
                         borderColor: subtle,
-                        background: "rgba(255,255,255,0.01)",
                     }}
                 >
                     <div className="flex items-center gap-2 mb-6 text-[11px] font-mono tracking-widest uppercase">
@@ -291,10 +286,9 @@ export default function AnalyticsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="rounded-sm border p-5 flex flex-col"
+                    className="rounded-sm border p-5 flex flex-col bg-card"
                     style={{
                         borderColor: subtle,
-                        background: "rgba(255,255,255,0.01)",
                     }}
                 >
                     <div className="flex items-center gap-2 mb-6 text-[11px] font-mono tracking-widest uppercase">
@@ -357,10 +351,9 @@ export default function AnalyticsPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="lg:col-span-3 rounded-sm border p-5"
+                    className="lg:col-span-3 rounded-sm border p-5 bg-card"
                     style={{
                         borderColor: subtle,
-                        background: "rgba(255,255,255,0.01)",
                     }}
                 >
                     <div className="flex items-center gap-2 mb-6 text-[11px] font-mono tracking-widest uppercase">

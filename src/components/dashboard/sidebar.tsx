@@ -44,9 +44,8 @@ export function Sidebar() {
 
     return (
         <div
-            className="relative flex flex-col h-full overflow-hidden"
+            className="relative flex flex-col h-full bg-background overflow-hidden"
             style={{
-                background: "#0a0a12",
                 borderRight: `1px solid ${subtle}`,
             }}
         >
@@ -55,7 +54,7 @@ export function Sidebar() {
                 className="pointer-events-none absolute inset-0 z-0 opacity-[0.018]"
                 style={{
                     backgroundImage:
-                        "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 4px)",
+                        "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(100,100,100,0.5) 2px, rgba(100,100,100,0.5) 4px)",
                 }}
             />
 

@@ -146,10 +146,7 @@ export default function DashboardPage() {
     }, [contacts, analytics]);
 
     return (
-        <div
-            className="space-y-8 min-h-screen p-6"
-            style={{ background: "#080810" }}
-        >
+        <div className="space-y-8 min-h-screen p-6 bg-background">
             {/* ── HEADER ── */}
             <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -197,8 +194,8 @@ export default function DashboardPage() {
                 {dynamicStats.map((stat) => (
                     <div
                         key={stat.label}
-                        className="group relative rounded-sm border overflow-hidden transition-all duration-200"
-                        style={{ background: "#0e0e1a", borderColor: subtle }}
+                        className="group relative rounded-sm border overflow-hidden transition-all duration-200 bg-card"
+                        style={{ borderColor: subtle }}
                         onMouseEnter={(e) => {
                             (e.currentTarget as HTMLElement).style.borderColor =
                                 `${stat.color}40`;
@@ -274,8 +271,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* ACTIVITY LOG */}
                 <div
-                    className="lg:col-span-2 rounded-sm border overflow-hidden"
-                    style={{ background: "#0e0e1a", borderColor: subtle }}
+                    className="lg:col-span-2 rounded-sm border overflow-hidden bg-card"
+                    style={{ borderColor: subtle }}
                 >
                     {/* header */}
                     <div
@@ -385,8 +382,8 @@ export default function DashboardPage() {
 
                 {/* QUICK ACTIONS */}
                 <div
-                    className="rounded-sm border overflow-hidden"
-                    style={{ background: "#0e0e1a", borderColor: subtle }}
+                    className="rounded-sm border overflow-hidden bg-card"
+                    style={{ borderColor: subtle }}
                 >
                     {/* header */}
                     <div

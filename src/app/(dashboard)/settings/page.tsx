@@ -55,10 +55,7 @@ export default function SettingsPage() {
     if (!mounted) return null;
 
     return (
-        <div
-            className="space-y-8 min-h-screen p-6 max-w-5xl mx-auto"
-            style={{ background: "#080810" }}
-        >
+        <div className="space-y-8 min-h-screen p-6 max-w-5xl mx-auto bg-background">
             {/* HEADER */}
             <div className="space-y-1">
                 <div
@@ -265,7 +262,7 @@ export default function SettingsPage() {
                             {/* Light Mode */}
                             <button
                                 onClick={() => setTheme("light")}
-                                className="relative flex flex-col items-start p-4 rounded-sm border transition-all text-left opacity-50 cursor-not-allowed"
+                                className="relative flex flex-col items-start p-4 rounded-sm border transition-all text-left"
                                 style={{
                                     borderColor:
                                         theme === "light" ? "#aa88ff" : subtle,
@@ -274,8 +271,6 @@ export default function SettingsPage() {
                                             ? "rgba(170,136,255,0.05)"
                                             : "transparent",
                                 }}
-                                disabled
-                                title="Light mode is currently disabled in this build"
                             >
                                 {theme === "light" && (
                                     <CheckCircle2
@@ -292,7 +287,12 @@ export default function SettingsPage() {
                                 />
                                 <span
                                     className="text-[12px] font-mono font-bold mb-1"
-                                    style={{ color: "#aaaacc" }}
+                                    style={{
+                                        color:
+                                            theme === "light"
+                                                ? "#222244"
+                                                : "#aaaacc",
+                                    }}
                                 >
                                     Light Mode
                                 </span>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                                     className="text-[10px] font-mono"
                                     style={{ color: dim }}
                                 >
-                                    Currently overriding to dark theme
+                                    Clean workspace with bright contrasts
                                 </span>
                             </button>
                         </div>
