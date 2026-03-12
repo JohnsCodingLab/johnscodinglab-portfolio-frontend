@@ -19,9 +19,9 @@ export const projectSchema = z.object({
     githubUrl: z.string().url().optional().or(z.literal("")),
     previewUrl: z.string().url().optional().or(z.literal("")),
     coverImage: z.string().optional(),
-    featured: z.boolean().default(false),
-    published: z.boolean().default(false),
-    sortOrder: z.number().int().default(0),
+    featured: z.boolean(),
+    published: z.boolean(),
+    sortOrder: z.number().int(),
 });
 
 // Blog post form
@@ -35,7 +35,7 @@ export const blogPostSchema = z.object({
     excerpt: z.string().optional(),
     coverImage: z.string().optional(),
     tags: z.array(z.string()),
-    published: z.boolean().default(false),
+    published: z.boolean(),
 });
 
 // Infer TypeScript types from schemas — these are used by react-hook-form

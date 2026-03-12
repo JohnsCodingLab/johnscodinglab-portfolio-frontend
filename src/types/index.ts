@@ -36,6 +36,8 @@ export interface ContactMessage {
     subject: string;
     message: string;
     read: boolean;
+    repliedAt: string | null;
+    replyText: string | null;
     createdAt: string;
 }
 
