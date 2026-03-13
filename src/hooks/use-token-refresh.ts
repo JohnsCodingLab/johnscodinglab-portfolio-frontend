@@ -5,7 +5,8 @@ import axios from "axios";
 import { useAuthStore } from "@/store/auth-store";
 
 const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3008/api";
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://portfolio-api-pm4w.onrender.com/api";
 
 /** Decode JWT payload without a library */
 function decodeJwt(token: string): { exp?: number } | null {
