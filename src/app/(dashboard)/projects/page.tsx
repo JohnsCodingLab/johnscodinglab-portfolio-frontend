@@ -442,7 +442,7 @@ export default function ProjectsPage() {
             {/* ── EMPTY ── */}
             {!isLoading && !error && total === 0 && (
                 <div
-                    className="rounded-sm border border-dashed px-8 py-20 text-center"
+                    className="relative rounded-sm border border-dashed px-8 py-20 text-center"
                     style={{
                         borderColor: subtle,
                         background: "rgba(255,255,255,0.01)",
@@ -450,7 +450,7 @@ export default function ProjectsPage() {
                 >
                     {/* grid bg */}
                     <div
-                        className="absolute inset-0 opacity-[0.03] rounded-sm"
+                        className="pointer-events-none absolute inset-0 opacity-[0.03] rounded-sm"
                         style={{
                             backgroundImage:
                                 "linear-gradient(rgba(0,255,136,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,1) 1px, transparent 1px)",
