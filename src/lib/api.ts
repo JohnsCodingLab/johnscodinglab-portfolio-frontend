@@ -59,21 +59,30 @@ api.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return api(originalRequest);
             } catch (refreshError) {
-                // Refresh failed — clear everything and let AuthGuard handle redirect
-                localStorage.removeItem("accessToken");
-                const stored = JSON.parse(
-                    localStorage.getItem("jcl-auth") || "{}",
-                );
-                if (stored.state) {
-                    stored.state.user = null;
-                    stored.state.accessToken = null;
-                    localStorage.setItem("jcl-auth", JSON.stringify(stored));
+                const status = axios.isAxiosError(refreshError)
+                    ? refreshError.response?.status
+                    : null;
+
+                // Only redirect to login on actual auth failures, not network errors
+                if (status === 401 || status === 403 || status === undefined) {
+                    localStorage.removeItem("accessToken");
+                    const stored = JSON.parse(
+                        localStorage.getItem("jcl-auth") || "{}",
+                    );
+                    if (stored.state) {
+                        stored.state.user = null;
+                        stored.state.accessToken = null;
+                        localStorage.setItem(
+                            "jcl-auth",
+                            JSON.stringify(stored),
+                        );
+                    }
+                    document.cookie =
+                        "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    window.location.href = "/login";
                 }
-                // Clear the has_session cookie
-                document.cookie =
-                    "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                // Soft redirect — no full page reload
-                window.location.href = "/login";
+                // If it's a genuine network error (ERR_CONNECTION_REFUSED),
+                // don't log out — just let the next request retry
                 return Promise.reject(refreshError);
             }
         }

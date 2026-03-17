@@ -59,11 +59,19 @@ export function useTokenRefresh() {
             setAuth(user, newToken);
             localStorage.setItem("accessToken", newToken);
             scheduleRefresh(newToken);
-        } catch {
-            clearAuth();
-            localStorage.removeItem("accessToken");
-            document.cookie =
-                "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        } catch (err: unknown) {
+            // Only clear auth on 401 (bad/expired session), not on network errors
+            const status = axios.isAxiosError(err)
+                ? err.response?.status
+                : null;
+
+            if (status === 401 || status === 403) {
+                clearAuth();
+                localStorage.removeItem("accessToken");
+                document.cookie =
+                    "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+            // For network errors (no response), just silently retry on next mount
         }
     }, [user, setAuth, clearAuth, scheduleRefresh]);
 
