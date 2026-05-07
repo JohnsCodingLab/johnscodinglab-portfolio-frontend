@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -8,7 +8,6 @@ const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL ||
     "https://portfolio-api-pm4w.onrender.com/api";
 
-/** Decode JWT payload without a library */
 function decodeJwt(token: string): { exp?: number } | null {
     try {
         const base64 = token.split(".")[1];
@@ -19,7 +18,6 @@ function decodeJwt(token: string): { exp?: number } | null {
     }
 }
 
-/** Returns ms until token expires (negative = already expired) */
 function msUntilExpiry(token: string): number {
     const payload = decodeJwt(token);
     if (!payload?.exp) return 0;
@@ -28,71 +26,66 @@ function msUntilExpiry(token: string): number {
 
 export function useTokenRefresh() {
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const refreshRef = useRef<(() => Promise<void>) | null>(null);
-    const accessToken = useAuthStore((s) => s.accessToken);
-    const setAuth = useAuthStore((s) => s.setAuth);
-    const clearAuth = useAuthStore((s) => s.clearAuth);
-    const user = useAuthStore((s) => s.user);
 
-    const scheduleRefresh = useCallback((token: string) => {
-        if (timerRef.current) clearTimeout(timerRef.current);
+    useEffect(() => {
+        const doRefresh = async () => {
+            const { accessToken, user, setAuth, clearAuth } =
+                useAuthStore.getState();
+            if (!accessToken || !user) return;
 
-        const ms = msUntilExpiry(token);
-        const delay = Math.max(ms - 60_000, 0);
+            try {
+                const { data } = await axios.post(
+                    `${API_BASE_URL}/auth/refresh`,
+                    {},
+                    { withCredentials: true },
+                );
 
-        timerRef.current = setTimeout(() => {
-            refreshRef.current?.();
-        }, delay);
-    }, []);
+                const newToken = data.data?.accessToken || data.accessToken;
+                if (!newToken) return;
 
-    const refresh = useCallback(async () => {
-        try {
-            const { data } = await axios.post(
-                `${API_BASE_URL}/auth/refresh`,
-                {},
-                { withCredentials: true },
-            );
-
-            const newToken = data.data?.accessToken || data.accessToken;
-            if (!newToken || !user) return;
-
-            setAuth(user, newToken);
-            localStorage.setItem("accessToken", newToken);
-            scheduleRefresh(newToken);
-        } catch (err: unknown) {
-            // Only clear auth on 401 (bad/expired session), not on network errors
-            const status = axios.isAxiosError(err)
-                ? err.response?.status
-                : null;
-
-            if (status === 401 || status === 403) {
-                clearAuth();
-                localStorage.removeItem("accessToken");
-                document.cookie =
-                    "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                setAuth(user, newToken);
+                localStorage.setItem("accessToken", newToken);
+                schedule(newToken);
+            } catch (err: unknown) {
+                const status = axios.isAxiosError(err)
+                    ? err.response?.status
+                    : null;
+                // Only log out on definitive auth failures, not network errors
+                if (status === 401 || status === 403) {
+                    clearAuth();
+                    localStorage.removeItem("accessToken");
+                    document.cookie =
+                        "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    window.location.href = "/login";
+                } else {
+                    // Network error — retry in 30 seconds
+                    timerRef.current = setTimeout(doRefresh, 30_000);
+                }
             }
-            // For network errors (no response), just silently retry on next mount
-        }
-    }, [user, setAuth, clearAuth, scheduleRefresh]);
+        };
 
-    // Keep the ref in sync so the timer always calls the latest version
-    useEffect(() => {
-        refreshRef.current = refresh;
-    }, [refresh]);
+        const schedule = (token: string) => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            const ms = msUntilExpiry(token);
+            // Refresh 90 seconds before expiry (gives more buffer)
+            const delay = Math.max(ms - 90_000, 0);
+            timerRef.current = setTimeout(doRefresh, delay);
+        };
 
-    useEffect(() => {
+        const { accessToken } = useAuthStore.getState();
         if (!accessToken) return;
 
         const ms = msUntilExpiry(accessToken);
-
-        if (ms <= 0) {
-            refresh();
+        if (ms <= 30_000) {
+            // Already expired or expiring very soon — refresh immediately
+            doRefresh();
         } else {
-            scheduleRefresh(accessToken);
+            schedule(accessToken);
         }
 
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [accessToken, refresh, scheduleRefresh]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run once on mount — reads store state directly to avoid dep issues
 }

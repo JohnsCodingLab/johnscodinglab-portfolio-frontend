@@ -9,7 +9,15 @@ const api = axios.create({
     withCredentials: true,
 });
 
-// REQUEST INTERCEPTOR — attaches the access token to every outgoing request
+// Prevent multiple simultaneous refresh calls
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function onRefreshed(token: string) {
+    refreshSubscribers.forEach((cb) => cb(token));
+    refreshSubscribers = [];
+}
+
 api.interceptors.request.use((config) => {
     const storeToken =
         typeof window !== "undefined"
@@ -23,9 +31,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-export default api;
-
-// RESPONSE INTERCEPTOR — handles 401 errors by silently refreshing the token
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -33,6 +38,18 @@ api.interceptors.response.use(
 
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
+
+            if (isRefreshing) {
+                // Queue this request until refresh completes
+                return new Promise((resolve) => {
+                    refreshSubscribers.push((token: string) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        resolve(api(originalRequest));
+                    });
+                });
+            }
+
+            isRefreshing = true;
 
             try {
                 const { data } = await axios.post(
@@ -43,10 +60,8 @@ api.interceptors.response.use(
 
                 const newToken = data.data?.accessToken || data.accessToken;
 
-                // Update localStorage (direct key)
                 localStorage.setItem("accessToken", newToken);
 
-                // Update Zustand persisted store so AuthGuard stays happy
                 const stored = JSON.parse(
                     localStorage.getItem("jcl-auth") || "{}",
                 );
@@ -55,16 +70,20 @@ api.interceptors.response.use(
                     localStorage.setItem("jcl-auth", JSON.stringify(stored));
                 }
 
-                // Retry the original request with the new token
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                onRefreshed(newToken);
+                isRefreshing = false;
                 return api(originalRequest);
             } catch (refreshError) {
+                isRefreshing = false;
+                refreshSubscribers = [];
+
                 const status = axios.isAxiosError(refreshError)
                     ? refreshError.response?.status
                     : null;
 
-                // Only redirect to login on actual auth failures, not network errors
-                if (status === 401 || status === 403 || status === undefined) {
+                // Only redirect on definitive auth failures, NOT network errors
+                if (status === 401 || status === 403) {
                     localStorage.removeItem("accessToken");
                     const stored = JSON.parse(
                         localStorage.getItem("jcl-auth") || "{}",
@@ -81,8 +100,6 @@ api.interceptors.response.use(
                         "has_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
                     window.location.href = "/login";
                 }
-                // If it's a genuine network error (ERR_CONNECTION_REFUSED),
-                // don't log out — just let the next request retry
                 return Promise.reject(refreshError);
             }
         }
@@ -90,3 +107,5 @@ api.interceptors.response.use(
         return Promise.reject(error);
     },
 );
+
+export default api;
